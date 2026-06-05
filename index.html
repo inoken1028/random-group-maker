@@ -193,8 +193,8 @@
 
     <div class="input-section">
         <label for="raw-names">生徒名簿入力</label>
-        <p class="info-text">名前を改行区切り、またはスペース区切りで入力してください。</p>
-        <textarea id="raw-names" placeholder="山田太郎&#13;佐藤花子&#13;鈴木一郎"></textarea>
+        <p class="info-text">名前を【改行】で区切って入力してください。（名前の中のスペースは保持されます）</p>
+        <textarea id="raw-names" placeholder="山田 太郎&#13;佐藤 花子&#13;鈴木 一郎"></textarea>
         <button class="btn" onclick="initializeAttendance()">名簿を登録して出席確認へ</button>
     </div>
 
@@ -224,8 +224,9 @@
     // 名簿を読み込んで出欠リストを生成
     function initializeAttendance() {
         const text = document.getElementById('raw-names').value;
-        // 改行、コンマ、スペースで分割し、空行を除去
-        const rawList = text.split(/[\n,、\s]+/).map(name => name.trim()).filter(name => name !== "");
+        
+        // 修正ポイント：改行コード（\n または \r\n）のみで分割する
+        const rawList = text.split(/\r?\n/).map(name => name.trim()).filter(name => name !== "");
 
         if (rawList.length === 0) {
             alert("名前を入力してください。");
@@ -256,7 +257,7 @@
             checkbox.type = 'checkbox';
             checkbox.checked = student.isAbsent;
             checkbox.onclick = (e) => {
-                e.stopPropagation(); // ラベルのクリックイベントとの重複防止
+                e.stopPropagation(); 
                 toggleAbsence(index);
             };
 
@@ -276,7 +277,6 @@
 
     // グループ生成ロジック
     function generateGroups(groupSize) {
-        // 出席者だけを抽出
         let presentStudents = students.filter(s => !s.isAbsent).map(s => s.name);
 
         if (presentStudents.length === 0) {
@@ -290,14 +290,12 @@
             [presentStudents[i], presentStudents[j]] = [presentStudents[j], presentStudents[i]];
         }
 
-        // 指定されたサイズでグループに分割
         const groups = [];
         while (presentStudents.length > 0) {
             groups.push(presentStudents.splice(0, groupSize));
         }
 
-        // 端数調整（最後のグループが1人になってしまった場合、前のグループに合流させるなど）
-        // ※今回はシンプルな分割ですが、もし「1人ぼっち」を完全に防ぎたい場合はここを調整します。
+        // 1人ぼっち防止の端数調整
         if (groups.length > 1 && groups[groups.length - 1].length === 1) {
             const loneStudent = groups.pop()[0];
             groups[groups.length - 1].push(loneStudent);
