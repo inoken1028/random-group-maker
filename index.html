@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ランダムグループ作成ツール</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --danger-color: #e3342f;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+            font-size: 1.8rem;
+        }
+
+        .input-section {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 12px;
+            box-sizing: border-box;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            resize: vertical;
+        }
+
+        textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.2s;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            background-color: #357abd;
+        }
+
+        .attendance-section {
+            margin-top: 25px;
+            display: none;
+        }
+
+        .student-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 25px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            padding: 15px;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+
+        .student-item {
+            display: flex;
+            align-items: center;
+            background: white;
+            padding: 8px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .student-item input {
+            margin-right: 8px;
+            transform: scale(1.2);
+        }
+
+        .student-item.absent {
+            background: #f8d7da;
+            color: var(--danger-color);
+            text-decoration: line-through;
+        }
+
+        .action-section {
+            display: none;
+            border-top: 2px solid #eee;
+            padding-top: 25px;
+        }
+
+        .group-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .btn-group {
+            background-color: #2ecc71;
+        }
+        .btn-group:hover {
+            background-color: #27ae60;
+        }
+
+        .result-section {
+            margin-top: 25px;
+        }
+
+        .group-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 15px;
+        }
+
+        .group-card {
+            background: #f9f9f9;
+            border-left: 5px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .group-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #333;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+
+        .group-members {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .group-members li {
+            padding: 4px 0;
+        }
+
+        .info-text {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: -5px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🏫 ランダムグループ作成ツール</h1>
+
+    <div class="input-section">
+        <label for="raw-names">生徒名簿入力</label>
+        <p class="info-text">名前を改行区切り、またはスペース区切りで入力してください。</p>
+        <textarea id="raw-names" placeholder="山田太郎&#13;佐藤花子&#13;鈴木一郎"></textarea>
+        <button class="btn" onclick="initializeAttendance()">名簿を登録して出席確認へ</button>
+    </div>
+
+    <div class="attendance-section" id="attendance-section">
+        <label>欠席者のチェック（チェックを入れるとグループから除外されます）</label>
+        <div class="student-list" id="student-list"></div>
+    </div>
+
+    <div class="action-section" id="action-section">
+        <label>何人組を作りますか？</label>
+        <div class="group-buttons">
+            <button class="btn btn-group" onclick="generateGroups(2)">2人組</button>
+            <button class="btn btn-group" onclick="generateGroups(3)">3人組</button>
+            <button class="btn btn-group" onclick="generateGroups(4)">4人組</button>
+            <button class="btn btn-group" onclick="generateGroups(5)">5人組</button>
+        </div>
+    </div>
+
+    <div class="result-section">
+        <div class="group-grid" id="result-grid"></div>
+    </div>
+</div>
+
+<script>
+    let students = [];
+
+    // 名簿を読み込んで出欠リストを生成
+    function initializeAttendance() {
+        const text = document.getElementById('raw-names').value;
+        // 改行、コンマ、スペースで分割し、空行を除去
+        const rawList = text.split(/[\n,、\s]+/).map(name => name.trim()).filter(name => name !== "");
+
+        if (rawList.length === 0) {
+            alert("名前を入力してください。");
+            return;
+        }
+
+        // 生徒データ構造の作成（デフォルトは出席）
+        students = rawList.map(name => ({ name: name, isAbsent: false }));
+
+        renderAttendanceList();
+        document.getElementById('attendance-section').style.display = 'block';
+        document.getElementById('action-section').style.display = 'block';
+        
+        // 登録後に結果画面をクリア
+        document.getElementById('result-grid').innerHTML = '';
+    }
+
+    // 出欠リストの描画
+    function renderAttendanceList() {
+        const listContainer = document.getElementById('student-list');
+        listContainer.innerHTML = '';
+
+        students.forEach((student, index) => {
+            const label = document.createElement('label');
+            label.className = `student-item ${student.isAbsent ? 'absent' : ''}`;
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = student.isAbsent;
+            checkbox.onclick = (e) => {
+                e.stopPropagation(); // ラベルのクリックイベントとの重複防止
+                toggleAbsence(index);
+            };
+
+            label.onclick = () => toggleAbsence(index);
+            
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(student.name));
+            listContainer.appendChild(label);
+        });
+    }
+
+    // 出欠の切り替え
+    function toggleAbsence(index) {
+        students[index].isAbsent = !students[index].isAbsent;
+        renderAttendanceList();
+    }
+
+    // グループ生成ロジック
+    function generateGroups(groupSize) {
+        // 出席者だけを抽出
+        let presentStudents = students.filter(s => !s.isAbsent).map(s => s.name);
+
+        if (presentStudents.length === 0) {
+            alert("出席者がいません。");
+            return;
+        }
+
+        // Fisher-Yates アルゴリズムで配列をシャッフル
+        for (let i = presentStudents.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [presentStudents[i], presentStudents[j]] = [presentStudents[j], presentStudents[i]];
+        }
+
+        // 指定されたサイズでグループに分割
+        const groups = [];
+        while (presentStudents.length > 0) {
+            groups.push(presentStudents.splice(0, groupSize));
+        }
+
+        // 端数調整（最後のグループが1人になってしまった場合、前のグループに合流させるなど）
+        // ※今回はシンプルな分割ですが、もし「1人ぼっち」を完全に防ぎたい場合はここを調整します。
+        if (groups.length > 1 && groups[groups.length - 1].length === 1) {
+            const loneStudent = groups.pop()[0];
+            groups[groups.length - 1].push(loneStudent);
+        }
+
+        renderResults(groups);
+    }
+
+    // 結果の描画
+    function renderResults(groups) {
+        const resultGrid = document.getElementById('result-grid');
+        resultGrid.innerHTML = '';
+
+        groups.forEach((group, index) => {
+            const card = document.createElement('div');
+            card.className = 'group-card';
+
+            const title = document.createElement('div');
+            title.className = 'group-title';
+            title.innerText = `グループ ${index + 1} (${group.length}人)`;
+            card.appendChild(title);
+
+            const ul = document.createElement('ul');
+            ul.className = 'group-members';
+            
+            group.forEach(member => {
+                const li = document.createElement('li');
+                li.innerText = member;
+                ul.appendChild(li);
+            });
+
+            card.appendChild(ul);
+            resultGrid.appendChild(card);
+        });
+    }
+</script>
+
+</body>
+</html>
