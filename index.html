@@ -245,14 +245,15 @@
         .member-list li { padding: 6px 0; font-size: 1rem; border-bottom: 1px dashed #e2e8f0; }
         .member-list li:last-child { border-bottom: none; }
 
-        /* プロジェクター・画像出力用の横向き(16:9)隠しスクリーン設定 */
+        /* 【修正ポイント】固定値だった height: 1080px を min-height に変更し、縦に伸びるよう調整 */
         #hidden-theater-stage {
             position: absolute;
             left: -9999px;
             top: -9999px;
             width: 1920px;
-            height: 1080px;
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            min-height: 1080px;
+            background: #0f172a; /* 縦伸び時のグラデーション切れを防ぐため、ベースを濃紺に固定 */
+            background-image: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
             color: white;
             padding: 60px;
             box-sizing: border-box;
@@ -277,7 +278,6 @@
             justify-content: center;
             align-content: flex-start;
             width: 100%;
-            height: 100%;
         }
 
         .theater-card {
@@ -343,9 +343,9 @@
 </div>
 
 <div class="shuffle-overlay" id="shuffle-overlay">
-    <div style="font-size: 1.5rem; margin-bottom: 10px; color: #94a3b8;">シャッフル中....</div>
+    <div style="font-size: 1.5rem; margin-bottom: 10px; color: #94a3b8;">シャッフル！</div>
     <div class="shuffle-box" id="shuffle-box">---</div>
-    <div style="font-size: 1.2rem; color: #e2e8f0;">⚡️グループを編成中⚡️</div>
+    <div style="font-size: 1.2rem; color: #e2e8f0;">グループを編成します(^^)</div>
 </div>
 
 <div id="hidden-theater-stage">
@@ -353,12 +353,12 @@
     <div class="theater-grid" id="theater-grid"></div>
 </div>
 
-<script>
+<script {
+}>
     let students = [];
     let currentMode = 'size'; // 'size' or 'count'
     let lastGeneratedGroups = []; // 画像出力用に結果を一時保持
 
-    // 起動時にブラウザの保存領域（LocalStorage）から前回の名簿を自動読み込み
     window.onload = function() {
         const savedNames = localStorage.getItem('saved_student_names');
         if (savedNames) {
@@ -367,7 +367,6 @@
         }
     };
 
-    // 名簿を確定し、LocalStorageに保存する処理
     function processRegisteredNames() {
         const text = document.getElementById('raw-names').value;
         const rawList = text.split(/\r?\n/).map(name => name.trim()).filter(name => name !== "");
@@ -377,10 +376,7 @@
             return;
         }
 
-        // ブラウザに名簿を自動保存
         localStorage.setItem('saved_student_names', text);
-
-        // 出席データ構造の初期化
         students = rawList.map(name => ({ name: name, isAbsent: false }));
 
         renderAttendanceGrid();
@@ -418,7 +414,6 @@
         renderAttendanceGrid();
     }
 
-    // 分け方モード（人数指定 vs グループ数指定）の切り替え
     function switchMode(mode) {
         currentMode = mode;
         document.getElementById('tab-size').className = `tab ${mode === 'size' ? 'active' : ''}`;
@@ -435,7 +430,6 @@
         }
     }
 
-    // 演出：シャッフルアニメーションの実行
     function startShuffleAnimation() {
         let presentStudents = students.filter(s => !s.isAbsent).map(s => s.name);
         if (presentStudents.length === 0) {
@@ -452,7 +446,7 @@
             const randomIndex = Math.floor(Math.random() * presentStudents.length);
             box.innerText = presentStudents[randomIndex];
             counter++;
-            if (counter > 25) { // 約1.25秒間アニメーション
+            if (counter > 25) {
                 clearInterval(interval);
                 overlay.style.display = 'none';
                 executeGroupLogic(presentStudents);
@@ -460,7 +454,6 @@
         }, 50);
     }
 
-    // 本番：グループ生成ロジック
     function executeGroupLogic(presentStudents) {
         const targetNumber = parseInt(document.getElementById('config-number').value);
         if (isNaN(targetNumber) || targetNumber <= 0) {
@@ -468,7 +461,6 @@
             return;
         }
 
-        // 配列をシャッフル (Fisher-Yates)
         for (let i = presentStudents.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [presentStudents[i], presentStudents[j]] = [presentStudents[j], presentStudents[i]];
@@ -498,7 +490,6 @@
         renderNormalResults(groups);
     }
 
-    // 結果の通常描画
     function renderNormalResults(groups) {
         const container = document.getElementById('result-container');
         container.innerHTML = '';
@@ -519,7 +510,7 @@
         });
     }
 
-    // 画像出力処理
+    // 【修正ポイント】html2canvasの撮影範囲を、コンテンツの高さに自動フィットさせる
     function exportToImage() {
         if (lastGeneratedGroups.length === 0) return;
 
@@ -542,10 +533,13 @@
 
         const target = document.getElementById('hidden-theater-stage');
         
+        // 撮影前に、中身がどれだけの高さになっているかをミリ秒単位で計測して反映させる
+        // これにより、グループ数が多くて下にはみ出しても、動的に縦幅が拡張されます
         html2canvas(target, {
             width: 1920,
-            height: 1080,
-            scale: 2 
+            height: target.scrollHeight, // 1080に固定せず、中身の総スクロール高さに合わせる
+            scale: 2,
+            windowHeight: target.scrollHeight
         }).then(canvas => {
             const link = document.createElement('a');
             link.download = `グループ分け結果_${new Date().toLocaleDateString()}.png`;
