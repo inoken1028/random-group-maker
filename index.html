@@ -3,332 +3,561 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ランダムグループ作成ツール</title>
+    <title>プロ仕様｜ランダムグループ作成ツール</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
-            --primary-color: #4a90e2;
-            --danger-color: #e3342f;
-            --bg-color: #f4f7f6;
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --success: #10b981;
+            --success-hover: #059669;
+            --danger: #ef4444;
+            --bg-main: #f8fafc;
             --card-bg: #ffffff;
-            --text-color: #333333;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
         }
 
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            line-height: 1.6;
+            background-color: var(--bg-main);
+            color: var(--text-main);
             margin: 0;
             padding: 20px;
+            display: flex;
+            justify-content: center;
         }
 
         .container {
-            max-width: 800px;
-            margin: 0 auto;
+            width: 100%;
+            max-width: 900px;
             background: var(--card-bg);
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 35px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
         }
 
         h1 {
             text-align: center;
-            color: var(--primary-color);
+            color: var(--primary);
+            font-size: 2rem;
             margin-bottom: 30px;
-            font-size: 1.8rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
-        .input-section {
+        .card-section {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
             margin-bottom: 25px;
         }
 
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 8px;
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         textarea {
             width: 100%;
-            height: 120px;
-            padding: 12px;
+            height: 140px;
+            padding: 14px;
             box-sizing: border-box;
-            border: 2px solid #ddd;
+            border: 1px solid var(--border);
             border-radius: 8px;
             font-size: 1rem;
             resize: vertical;
+            background-color: #f9fafb;
+            transition: all 0.2s;
         }
 
         textarea:focus {
-            border-color: var(--primary-color);
+            border-color: var(--primary);
+            background-color: #fff;
             outline: none;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         }
 
         .btn {
-            background-color: var(--primary-color);
+            background-color: var(--primary);
             color: white;
             border: none;
-            padding: 12px 20px;
+            padding: 12px 24px;
             font-size: 1rem;
             border-radius: 8px;
             cursor: pointer;
-            width: 100%;
-            transition: background 0.2s;
-            font-weight: bold;
+            transition: all 0.2s;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
-        .btn:hover {
-            background-color: #357abd;
-        }
+        .btn:hover { background-color: var(--primary-hover); }
+        .btn-success { background-color: var(--success); }
+        .btn-success:hover { background-color: var(--success-hover); }
+        
+        .btn-block { width: 100%; }
 
-        .attendance-section {
-            margin-top: 25px;
-            display: none;
-        }
-
-        .student-list {
+        /* 出欠リストのスタイル */
+        .student-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
             gap: 10px;
-            margin-bottom: 25px;
             max-height: 200px;
             overflow-y: auto;
-            border: 1px solid #eee;
-            padding: 15px;
+            padding: 10px;
+            background: #f1f5f9;
             border-radius: 8px;
-            background: #fafafa;
         }
 
-        .student-item {
+        .student-checkbox {
             display: flex;
             align-items: center;
             background: white;
-            padding: 8px;
-            border-radius: 6px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
             cursor: pointer;
             user-select: none;
+            transition: all 0.2s;
+            font-size: 0.95rem;
         }
 
-        .student-item input {
-            margin-right: 8px;
+        .student-checkbox input {
+            margin-right: 10px;
             transform: scale(1.2);
+            accent-color: var(--danger);
         }
 
-        .student-item.absent {
-            background: #f8d7da;
-            color: var(--danger-color);
+        .student-checkbox.absent {
+            background: #fee2e2;
+            border-color: #fca5a5;
+            color: var(--danger);
             text-decoration: line-through;
         }
 
-        .action-section {
-            display: none;
-            border-top: 2px solid #eee;
-            padding-top: 25px;
-        }
-
-        .group-buttons {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
+        /* 条件指定のタブ切り替え */
+        .tab-container {
+            display: flex;
             gap: 10px;
-            margin-bottom: 25px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 10px;
         }
 
-        .btn-group {
-            background-color: #2ecc71;
-        }
-        .btn-group:hover {
-            background-color: #27ae60;
-        }
-
-        .result-section {
-            margin-top: 25px;
+        .tab {
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: all 0.2s;
         }
 
-        .group-grid {
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .config-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+        }
+
+        .number-input {
+            width: 80px;
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        /* シャッフルアニメーション用オーバーレイ */
+        .shuffle-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.85);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: white;
+        }
+
+        .shuffle-box {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            color: #67e8f9;
+            text-shadow: 0 0 20px rgba(103, 232, 249, 0.5);
+            min-height: 4.5rem;
+        }
+
+        /* 結果表示エリア（通常画面） */
+        .result-controls {
+            display: none;
+            justify-content: flex-end;
+            margin-bottom: 15px;
+        }
+
+        .group-output-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
         }
 
         .group-card {
-            background: #f9f9f9;
-            border-left: 5px solid var(--primary-color);
-            padding: 15px;
-            border-radius: 6px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-top: 4px solid var(--primary);
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
 
-        .group-title {
-            font-weight: bold;
+        .group-name {
+            font-weight: 700;
             font-size: 1.1rem;
-            margin-bottom: 10px;
-            color: #333;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 5px;
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--border);
+            color: var(--text-main);
         }
 
-        .group-members {
-            list-style: none;
-            padding: 0;
-            margin: 0;
+        .member-list { list-style: none; padding: 0; margin: 0; }
+        .member-list li { padding: 6px 0; font-size: 1rem; border-bottom: 1px dashed #e2e8f0; }
+        .member-list li:last-child { border-bottom: none; }
+
+        /* 【重要】プロジェクター・画像出力用の横向き(16:9)隠しスクリーン設定 */
+        #hidden-theater-stage {
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+            width: 1920px;
+            height: 1080px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            color: white;
+            padding: 60px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
         }
 
-        .group-members li {
-            padding: 4px 0;
+        .theater-header {
+            text-align: center;
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 50px;
+            color: #38bdf8;
+            letter-spacing: 2px;
         }
 
-        .info-text {
-            font-size: 0.9rem;
-            color: #666;
-            margin-top: -5px;
+        .theater-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+            align-content: flex-start;
+            width: 100%;
+            height: 100%;
+        }
+
+        .theater-card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 24px;
+            width: 280px;
+            box-sizing: border-box;
+        }
+
+        .theater-group-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #f43f5e;
+            border-bottom: 3px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 10px;
             margin-bottom: 15px;
+            text-align: center;
         }
+
+        .theater-member-list { list-style: none; padding: 0; margin: 0; text-align: center;}
+        .theater-member-list li { font-size: 1.6rem; padding: 8px 0; font-weight: 600; color: #f8fafc; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🏫 ランダムグループ作成ツール</h1>
+    <h1>🏫 プロ仕様｜ランダムグループ作成</h1>
 
-    <div class="input-section">
-        <label for="raw-names">生徒名簿入力</label>
-        <p class="info-text">名前を【改行】で区切って入力してください。（名前の中のスペースは保持されます）</p>
-        <textarea id="raw-names" placeholder="山田 太郎&#13;佐藤 花子&#13;鈴木 一郎"></textarea>
-        <button class="btn" onclick="initializeAttendance()">名簿を登録して出席確認へ</button>
+    <div class="card-section">
+        <div class="section-title">👥 1. 生徒名簿の登録</div>
+        <textarea id="raw-names" placeholder="名前を【改行】のみで区切って入力してください。&#13;（例）&#13;山田 太郎&#13;佐藤 花子"></textarea>
+        <button class="btn btn-block" style="margin-top: 12px;" onclick="processRegisteredNames()">名簿を確定して出欠確認へ</button>
     </div>
 
-    <div class="attendance-section" id="attendance-section">
-        <label>欠席者のチェック（チェックを入れるとグループから除外されます）</label>
-        <div class="student-list" id="student-list"></div>
+    <div id="section-attendance" class="card-section" style="display: none;">
+        <div class="section-title">✅ 2. 出欠確認 (クリックで欠席に切替)</div>
+        <div class="student-grid" id="student-grid"></div>
     </div>
 
-    <div class="action-section" id="action-section">
-        <label>何人組を作りますか？</label>
-        <div class="group-buttons">
-            <button class="btn btn-group" onclick="generateGroups(2)">2人組</button>
-            <button class="btn btn-group" onclick="generateGroups(3)">3人組</button>
-            <button class="btn btn-group" onclick="generateGroups(4)">4人組</button>
-            <button class="btn btn-group" onclick="generateGroups(5)">5人組</button>
+    <div id="section-config" class="card-section" style="display: none;">
+        <div class="section-title">⚙️ 3. 条件指定</div>
+        <div class="tab-container">
+            <div id="tab-size" class="tab active" onclick="switchMode('size')">1班あたりの人数で指定</div>
+            <div id="tab-count" class="tab" onclick="switchMode('count')">総グループ数で指定</div>
         </div>
+        
+        <div class="config-input-wrap">
+            <span id="config-label">1班あたりの人数:</span>
+            <input type="number" id="config-number" class="number-input" value="4" min="1">
+            <span id="config-unit">人組</span>
+        </div>
+        
+        <button class="btn btn-success btn-block" style="margin-top: 20px; font-size: 1.1rem;" onclick="startShuffleAnimation()">🎲 グループを編成する！</button>
     </div>
 
-    <div class="result-section">
-        <div class="group-grid" id="result-grid"></div>
+    <div class="result-controls" id="result-controls">
+        <button class="btn" style="background-color: #8b5cf6;" onclick="exportToImage()">📺 スクリーン用横向き画像を出力</button>
     </div>
+    <div class="group-output-container" id="result-container"></div>
+</div>
+
+<div class="shuffle-overlay" id="shuffle-overlay">
+    <div style="font-size: 1.5rem; margin-bottom: 10px; color: #94a3b8;">混ぜています...</div>
+    <div class="shuffle-box" id="shuffle-box">---</div>
+    <div style="font-size: 1.2rem; color: #e2e8f0;">⚡️ 最高のチームを編成中 ⚡️</div>
+</div>
+
+<div id="hidden-theater-stage">
+    <div class="theater-header" id="theater-title">👥 グループ分け結果</div>
+    <div class="theater-grid" id="theater-grid"></div>
 </div>
 
 <script>
     let students = [];
+    let currentMode = 'size'; // 'size' or 'count'
+    let lastGeneratedGroups = []; // 画像出力用に結果を一時保持
 
-    // 名簿を読み込んで出欠リストを生成
-    function initializeAttendance() {
+    // 起動時にブラウザの保存領域（LocalStorage）から前回の名簿を自動読み込み
+    window.onload = function() {
+        const savedNames = localStorage.getItem('saved_student_names');
+        if (savedNames) {
+            document.getElementById('raw-names').value = savedNames;
+            processRegisteredNames();
+        }
+    };
+
+    // 名簿を確定し、LocalStorageに保存する処理
+    function processRegisteredNames() {
         const text = document.getElementById('raw-names').value;
-        
-        // 修正ポイント：改行コード（\n または \r\n）のみで分割する
         const rawList = text.split(/\r?\n/).map(name => name.trim()).filter(name => name !== "");
 
         if (rawList.length === 0) {
-            alert("名前を入力してください。");
+            alert("生徒の名前を入力してください。");
             return;
         }
 
-        // 生徒データ構造の作成（デフォルトは出席）
+        // ブラウザに名簿を自動保存
+        localStorage.setItem('saved_student_names', text);
+
+        // 出席データ構造の初期化
         students = rawList.map(name => ({ name: name, isAbsent: false }));
 
-        renderAttendanceList();
-        document.getElementById('attendance-section').style.display = 'block';
-        document.getElementById('action-section').style.display = 'block';
-        
-        // 登録後に結果画面をクリア
-        document.getElementById('result-grid').innerHTML = '';
+        renderAttendanceGrid();
+        document.getElementById('section-attendance').style.style.display = 'block';
+        document.getElementById('section-config').style.style.display = 'block';
+        document.getElementById('result-container').innerHTML = '';
+        document.getElementById('result-controls').style.display = 'none';
     }
 
-    // 出欠リストの描画
-    function renderAttendanceList() {
-        const listContainer = document.getElementById('student-list');
-        listContainer.innerHTML = '';
+    function renderAttendanceGrid() {
+        const grid = document.getElementById('student-grid');
+        grid.innerHTML = '';
 
         students.forEach((student, index) => {
-            const label = document.createElement('label');
-            label.className = `student-item ${student.isAbsent ? 'absent' : ''}`;
+            const div = document.createElement('div');
+            div.className = `student-checkbox ${student.isAbsent ? 'absent' : ''}`;
             
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.checked = student.isAbsent;
             checkbox.onclick = (e) => {
-                e.stopPropagation(); 
-                toggleAbsence(index);
+                e.stopPropagation();
+                toggleStudentAbsence(index);
             };
 
-            label.onclick = () => toggleAbsence(index);
-            
-            label.appendChild(checkbox);
-            label.appendChild(document.createTextNode(student.name));
-            listContainer.appendChild(label);
+            div.onclick = () => toggleStudentAbsence(index);
+            div.appendChild(checkbox);
+            div.appendChild(document.createTextNode(student.name));
+            grid.appendChild(div);
         });
     }
 
-    // 出欠の切り替え
-    function toggleAbsence(index) {
+    function toggleStudentAbsence(index) {
         students[index].isAbsent = !students[index].isAbsent;
-        renderAttendanceList();
+        renderAttendanceGrid();
     }
 
-    // グループ生成ロジック
-    function generateGroups(groupSize) {
-        let presentStudents = students.filter(s => !s.isAbsent).map(s => s.name);
+    // 分け方モード（人数指定 vs グループ数指定）の切り替え
+    function switchMode(mode) {
+        currentMode = mode;
+        document.getElementById('tab-size').className = `tab ${mode === 'size' ? 'active' : ''}`;
+        document.getElementById('tab-count').className = `tab ${mode === 'count' ? 'active' : ''}`;
+        
+        if (mode === 'size') {
+            document.getElementById('config-label').innerText = "1班あたりの人数:";
+            document.getElementById('config-unit').innerText = "人組";
+            document.getElementById('config-number').value = "4";
+        } else {
+            document.getElementById('config-label').innerText = "生成する総グループ数:";
+            document.getElementById('config-unit').innerText = "グループ";
+            document.getElementById('config-number').value = "6";
+        }
+    }
 
+    // 演出：シャッフルアニメーションの実行
+    function startShuffleAnimation() {
+        let presentStudents = students.filter(s => !s.isAbsent).map(s => s.name);
         if (presentStudents.length === 0) {
-            alert("出席者がいません。");
+            alert("出席者が誰も選択されていません！");
             return;
         }
 
-        // Fisher-Yates アルゴリズムで配列をシャッフル
+        const overlay = document.getElementById('shuffle-overlay');
+        const box = document.getElementById('shuffle-box');
+        overlay.style.display = 'flex';
+
+        let counter = 0;
+        // 0.05秒ごとに対象の生徒名が目まぐるしく変わる演出
+        const interval = setInterval(() => {
+            const randomIndex = Math.floor(Math.random() * presentStudents.length);
+            box.innerText = presentStudents[randomIndex];
+            counter++;
+            if (counter > 25) { // 約1.25秒間アニメーション
+                clearInterval(interval);
+                overlay.style.display = 'none';
+                executeGroupLogic(presentStudents);
+            }
+        }, 50);
+    }
+
+    // 本番：グループ生成ロジック
+    function executeGroupLogic(presentStudents) {
+        const targetNumber = parseInt(document.getElementById('config-number').value);
+        if (isNaN(targetNumber) || targetNumber <= 0) {
+            alert("有効な数値を入力してください。");
+            return;
+        }
+
+        // 配列をシャッフル (Fisher-Yates)
         for (let i = presentStudents.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [presentStudents[i], presentStudents[j]] = [presentStudents[j], presentStudents[i]];
         }
 
-        const groups = [];
-        while (presentStudents.length > 0) {
-            groups.push(presentStudents.splice(0, groupSize));
+        let groups = [];
+
+        if (currentMode === 'size') {
+            // 「1班◯人」モード
+            while (presentStudents.length > 0) {
+                groups.push(presentStudents.splice(0, targetNumber));
+            }
+            // 1人ぼっち班が出た場合は、1つ前の班に合流させる
+            if (groups.length > 1 && groups[groups.length - 1].length === 1) {
+                const lone = groups.pop()[0];
+                groups[groups.length - 1].push(lone);
+            }
+        } else {
+            // 「総グループ数指定」モード（分配アルゴリズム）
+            for (let i = 0; i < targetNumber; i++) {
+                groups.push([]);
+            }
+            presentStudents.forEach((student, index) => {
+                groups[index % targetNumber].push(student);
+            });
+            // 空のグループがあれば除外
+            groups = groups.filter(g => g.length > 0);
         }
 
-        // 1人ぼっち防止の端数調整
-        if (groups.length > 1 && groups[groups.length - 1].length === 1) {
-            const loneStudent = groups.pop()[0];
-            groups[groups.length - 1].push(loneStudent);
-        }
-
-        renderResults(groups);
+        lastGeneratedGroups = groups; // 画像出力用に保存
+        renderNormalResults(groups);
     }
 
-    // 結果の描画
-    function renderResults(groups) {
-        const resultGrid = document.getElementById('result-grid');
-        resultGrid.innerHTML = '';
+    // 結果の通常描画
+    function renderNormalResults(groups) {
+        const container = document.getElementById('result-container');
+        container.innerHTML = '';
+        document.getElementById('result-controls').style.display = 'flex';
 
         groups.forEach((group, index) => {
             const card = document.createElement('div');
             card.className = 'group-card';
-
-            const title = document.createElement('div');
-            title.className = 'group-title';
-            title.innerText = `グループ ${index + 1} (${group.length}人)`;
-            card.appendChild(title);
-
-            const ul = document.createElement('ul');
-            ul.className = 'group-members';
+            card.innerHTML = `<div class="group-name">グループ ${index + 1} (${group.length}人)</div>`;
             
-            group.forEach(member => {
-                const li = document.createElement('li');
-                li.innerText = member;
-                ul.appendChild(li);
+            const ul = document.createElement('ul');
+            ul.className = 'member-list';
+            group.forEach(m => {
+                ul.innerHTML += `<li>${m}</li>`;
             });
-
             card.appendChild(ul);
-            resultGrid.appendChild(card);
+            container.appendChild(card);
+        });
+    }
+
+    // 【メインイベント】プロジェクター最適化（16:9横向き高画質画像）のエクスポート処理
+    function exportToImage() {
+        if (lastGeneratedGroups.length === 0) return;
+
+        const gridStage = document.getElementById('theater-grid');
+        gridStage.innerHTML = '';
+
+        // 隠しステージに横並び用のカードを生成
+        lastGeneratedGroups.forEach((group, index) => {
+            const card = document.createElement('div');
+            card.className = 'theater-card';
+            card.innerHTML = `<div class="theater-group-name">第 ${index + 1} 班</div>`;
+            
+            const ul = document.createElement('ul');
+            ul.className = 'theater-member-list';
+            group.forEach(m => {
+                ul.innerHTML += `<li>${m}</li>`;
+            });
+            card.appendChild(ul);
+            gridStage.appendChild(card);
+        });
+
+        // 画面外の隠しステージを取得して画像に変換
+        const target = document.getElementById('hidden-theater-stage');
+        
+        html2canvas(target, {
+            width: 1920,
+            height: 1080,
+            scale: 2 // 2倍の解像度（高画質化）で出力。電子黒板でもぼやけません
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `グループ分け結果_${new Date().toLocaleDateString()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
         });
     }
 </script>
