@@ -307,16 +307,16 @@
 <body>
 
 <div class="container">
-    <h1>🏫 ランダムグループ作成ツール</h1>
+    <h1>ランダムグループ作成ツール</h1>
 
     <div class="card-section">
         <div class="section-title">👥 1. 生徒名簿の登録</div>
         <textarea id="raw-names" placeholder="名前を【改行】のみで区切って入力してください。&#13;（例）&#13;山田 太郎&#13;佐藤 花子"></textarea>
-        <button class="btn btn-block" style="margin-top: 12px;" onclick="processRegisteredNames()">名簿を確定して出欠確認へ</button>
+        <button class="btn btn-block" style="margin-top: 12px;" onclick="processRegisteredNames()">名簿を確定して欠席者確認へ</button>
     </div>
 
     <div id="section-attendance" class="card-section" style="display: none;">
-        <div class="section-title">✅ 2. 出欠確認 (クリックで欠席に切替)</div>
+        <div class="section-title">✅ 2. 欠席者にチェックを入れて下さい</div>
         <div class="student-grid" id="student-grid"></div>
     </div>
 
@@ -333,11 +333,11 @@
             <span id="config-unit">人組</span>
         </div>
         
-        <button class="btn btn-success btn-block" style="margin-top: 20px; font-size: 1.1rem;" onclick="startShuffleAnimation()">🎲 グループを編成する！</button>
+        <button class="btn btn-success btn-block" style="margin-top: 20px; font-size: 1.1rem;" onclick="startShuffleAnimation()">シャッフルしてグループを編成する</button>
     </div>
 
     <div class="result-controls" id="result-controls">
-        <button class="btn" style="background-color: #8b5cf6;" onclick="exportToImage()">📺 スクリーン用横向き画像を出力</button>
+        <button class="btn" style="background-color: #8b5cf6;" onclick="exportToImage()">スクリーン用横向き画像を出力</button>
     </div>
     <div class="group-output-container" id="result-container"></div>
 </div>
@@ -345,7 +345,7 @@
 <div class="shuffle-overlay" id="shuffle-overlay">
     <div style="font-size: 1.5rem; margin-bottom: 10px; color: #94a3b8;">シャッフル！</div>
     <div class="shuffle-box" id="shuffle-box">---</div>
-    <div style="font-size: 1.2rem; color: #e2e8f0;">グループを編成します(^^)</div>
+    <div style="font-size: 1.2rem; color: #e2e8f0;">グループを編成します(^_^)/</div>
 </div>
 
 <div id="hidden-theater-stage">
